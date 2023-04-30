@@ -16,6 +16,11 @@ public class ConstantsAndHelpers
         WATSON = 6,
         WILLA = 7
     }
+    public enum RespawnState {
+        NONE = 0,
+        COUNTDOWN = 1,
+        NOW = 2
+    }
 
     public const int MAX_PLAYERS = 8;
     public const float SPAWNER_COOLDOWN = 10f;

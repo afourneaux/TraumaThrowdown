@@ -20,8 +20,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
     
-    public float respawnTimer = 1f;
-    public bool needsRespawn = false;
+    float respawnTimer = 1f;
+    public ConstantsAndHelpers.RespawnState respawnState;
     public int lives = ConstantsAndHelpers.START_LIVES;
     public Character character;
 
@@ -45,6 +45,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
                 return;
             }
         }
+        transform.name = $"PlayerController-{photonView.Owner.NickName}";
         if (AllPlayers == null) {
             AllPlayers = new List<PlayerController>();
         }
@@ -62,13 +63,21 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         if (photonView.IsMine == false) {
             return;
         }
-        /*if (needsRespawn) {
-            respawnTimer -= dt;
-            if (respawnTimer < 0) {
-                SpawnCharacter();
-                needsRespawn = false;
+        if (character?.isInitialised == true && character?.hp <= 0) {
+            NetworkController.DestroyNetworkedObject(character.gameObject);
+            character = null;
+            lives--;
+            if (lives > 0) {
+                respawnState = ConstantsAndHelpers.RespawnState.COUNTDOWN;
+                respawnTimer = ConstantsAndHelpers.RESPAWN_DELAY;
             }
-        }*/
+        }
+        if (respawnState == ConstantsAndHelpers.RespawnState.COUNTDOWN) {
+            respawnTimer -= Time.deltaTime;
+            if (respawnTimer < 0) {
+                respawnState =  ConstantsAndHelpers.RespawnState.NOW;
+            }
+        }
     }
 
     public override void OnDisable() {
@@ -83,10 +92,29 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             stream.SendNext(isReady);
             stream.SendNext(hasSelectedCharacter);
             stream.SendNext(selectedCharacter);
+            stream.SendNext(lives);
+            stream.SendNext(respawnState);
         } else {
             isReady = (bool)stream.ReceiveNext();
             hasSelectedCharacter = (bool)stream.ReceiveNext();
             selectedCharacter = (ConstantsAndHelpers.CharacterEnum)stream.ReceiveNext();
+            lives = (int)stream.ReceiveNext();
+            respawnState = (ConstantsAndHelpers.RespawnState)stream.ReceiveNext();
         }
+    }
+
+    // TODO - Properly block other respawn requests and tell master client when it's done
+    [PunRPC]
+    public void RPCSpawnCharacter(float x, float y) {
+        respawnState =  ConstantsAndHelpers.RespawnState.NONE;
+        if (photonView.IsMine == false) {
+            return;
+        }
+        if (character != null) {
+            Debug.LogWarning($"Trying to spawn character for user {photonView.Owner.NickName} but one already exists");
+            return;
+        }
+        GameObject go = NetworkController.SpawnNetworkedObject("Character", new Vector2(x, y), transform);
+        character = go.GetComponent<Character>();
     }
 }

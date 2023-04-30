@@ -32,22 +32,22 @@ public class GameController : MonoBehaviour
             Spawners.Add(new Vector2(position.x, position.y));
             SpawnerCooldowns.Add(0f);
         }
-        List<Vector2> mixedSpawners = new List<Vector2>(Spawners).OrderBy(p => Random.Range(0f, 1f)).ToList();
 
-        for (int i = 0; i < PlayerController.AllPlayers.Count; i++) {
-            SpawnCharacter(PlayerController.AllPlayers[i], mixedSpawners[i]);
+        foreach (PlayerController player in PlayerController.AllPlayers) {
+            SpawnCharacter(player);
         }
     }
 
     void Update() {
+        if (!PhotonNetwork.IsMasterClient) {
+            return;
+        }
         float dt = Time.deltaTime;
         for (int i = 0; i < ConstantsAndHelpers.MAX_PLAYERS; i++) {
             SpawnerCooldowns[i] -= dt;
         }
-        if (PlayerController.instance.character != null) {
-            if (PlayerController.instance.character.hp <= 0) {
-                KillCharacter(PlayerController.instance);
-            }
+        foreach (PlayerController player in PlayerController.AllPlayers.Where(p => p.character == null && p.respawnState == ConstantsAndHelpers.RespawnState.NOW)) {
+            SpawnCharacter(player);
         }
     }
 
@@ -56,20 +56,17 @@ public class GameController : MonoBehaviour
         instance.isGameOn = false;
     }
 
-    public static void SpawnCharacter(PlayerController owner, Vector2 location) {
-        NetworkController.SpawnNetworkedObject("Character", location, owner.transform);
-
-    }
-
-    public void KillCharacter(PlayerController owner) {
-        if (owner.photonView.IsMine == true) {
-            NetworkController.DestroyNetworkedObject(owner.character.gameObject);
+    // TODO - make sure we don't spawn where someone is already standing
+    public void SpawnCharacter(PlayerController player) {
+        int locationIndex;
+        IEnumerable<int> validSpawners = SpawnerCooldowns.Where(s => s <= 0).Select(s => SpawnerCooldowns.IndexOf(s));
+        if (validSpawners.Any()) {
+            locationIndex = Random.Range(0, validSpawners.Count() - 1);
+        } else {
+            locationIndex = SpawnerCooldowns.IndexOf(SpawnerCooldowns.Min());
         }
-        owner.character = null;
-        owner.lives--;
-        if (owner.lives > 0) {
-            owner.needsRespawn = true;
-            owner.respawnTimer = ConstantsAndHelpers.RESPAWN_DELAY;
-        }
+        SpawnerCooldowns[locationIndex] = ConstantsAndHelpers.SPAWNER_COOLDOWN;
+        player.respawnState = ConstantsAndHelpers.RespawnState.NONE;
+        player.photonView.RPC("RPCSpawnCharacter", RpcTarget.All, Spawners[locationIndex].x, Spawners[locationIndex].y);
     }
 }

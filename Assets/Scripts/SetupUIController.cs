@@ -46,6 +46,9 @@ public class SetupUIController : MonoBehaviour
             isCountdownActive = PlayerController.AllPlayers.All(p => p.isReady);
             if (isCountdownActive) {
                 countdown = ConstantsAndHelpers.COUNTDOWN_LENGTH;
+                NetworkController.LockRoom();
+            } else {
+                NetworkController.UnlockRoom();
             }
             for (; playerIndex < 8; playerIndex++) {
                 transform.Find($"/UI/Connection/Users/User{playerIndex}").gameObject.SetActive(false);
