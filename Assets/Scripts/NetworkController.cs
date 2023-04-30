@@ -1,71 +1,76 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class NetworkController : MonoBehaviourPunCallbacks
 {
     public static NetworkController instance;
-    Transform connectBtn;
-    bool isConnected = false;
+    Button connectBtn;
+    TMPro.TMP_InputField roomNameInput;
+    TMPro.TMP_InputField playerNameInput;
 
     public override void OnEnable()
     {
-        DontDestroyOnLoad(gameObject);
-        instance = this;
+        if (instance == null) {
+            instance = this;
+        } else {
+            Destroy(gameObject);
+        }
         base.OnEnable();
     }
 
+    #region LobbyMenu
     void Start() {
         PhotonNetwork.AutomaticallySyncScene = true;
         PhotonNetwork.ConnectUsingSettings();
 
-        connectBtn = transform.Find("/UI/ConnectBtn");
-        connectBtn.GetComponent<Button>().onClick.AddListener(ChangeConnectionState);
-        UpdateConnectionBtnText();
-    }
-
-    void ChangeConnectionState() {
-        if (isConnected) {
-            Disconnect();
-        } else {
-            Connect();
-        }
+        connectBtn = transform.Find("/UI/ConnectBtn").GetComponent<Button>();
+        connectBtn.onClick.AddListener(Connect);
+        roomNameInput = transform.Find("/UI/RoomNameInput").GetComponent<TMPro.TMP_InputField>();
+        playerNameInput = transform.Find("/UI/PlayerNameInput").GetComponent<TMPro.TMP_InputField>();
     }
 
     void Connect() {
-        connectBtn.GetComponent<Button>().interactable = false;
+        roomNameInput.interactable = false;
+        playerNameInput.interactable = false;
+        connectBtn.interactable = false;
         RoomOptions options = new RoomOptions();
         options.IsVisible = true;
         options.MaxPlayers = 8;
-        PhotonNetwork.JoinOrCreateRoom("testroom", options, TypedLobby.Default);
-    }
-
-    void Disconnect() {
-        connectBtn.GetComponent<Button>().interactable = false;
-        PhotonNetwork.LeaveRoom();
-    }
-
-    void UpdateConnectionBtnText() {
-        connectBtn.GetComponentInChildren<TMPro.TMP_Text>().text = isConnected ? "Disconnect" : "Connect";
+        PhotonNetwork.NickName = playerNameInput.text;
+        PhotonNetwork.JoinOrCreateRoom(roomNameInput.text, options, TypedLobby.Default);
     }
 
     public override void OnJoinedRoom() {
         base.OnJoinedRoom();
-        connectBtn.GetComponent<Button>().interactable = true;
-        isConnected = true;
-        UpdateConnectionBtnText();
+        ChangeScene("SetupScene");
+    }
 
-        SpawnNetworkedObject("Player", Vector2.zero, GameController.instance.PlayerHolderTransform);
+    #endregion
+
+    public static void ChangeScene(string scene) {
+        if (PhotonNetwork.IsMasterClient) {
+            PhotonNetwork.LoadLevel(scene);
+        }
+    }
+
+    public static void Disconnect() {
+        PhotonNetwork.Disconnect();
     }
 
     public override void OnLeftRoom() {
+        SceneManager.LoadScene("MainMenuScene");
         base.OnLeftRoom();
-        connectBtn.GetComponent<Button>().interactable = false;
-        isConnected = false;
-        UpdateConnectionBtnText();
+    }
+
+    public override void OnDisconnected(DisconnectCause cause) {
+        SceneManager.LoadScene("MainMenuScene");
+        if (cause != DisconnectCause.DisconnectByClientLogic) {
+            Debug.LogError(cause.ToString());
+        }
+        base.OnDisconnected(cause);
     }
 
     public override void OnConnectedToMaster()
@@ -74,17 +79,27 @@ public class NetworkController : MonoBehaviourPunCallbacks
         base.OnConnectedToMaster();
     }
 
-    public GameObject SpawnNetworkedObject(string prefabName, Vector2 position, Transform parent = null) {
-        GameObject go = PhotonNetwork.Instantiate(prefabName, position, Quaternion.identity);
+    public static GameObject SpawnNetworkedObject(string prefabName, Vector2 position, Transform parent = null) {
+        GameObject go = PhotonNetwork.Instantiate($"NetworkPrefabs/{prefabName}", position, Quaternion.identity);
         if (parent != null) {
-            RpcSetParent(go.GetComponent<PhotonView>().ViewID, parent);
+            go.GetPhotonView().RPC("RpcSetParent", RpcTarget.All, go.GetComponent<PhotonView>().ViewID, ConstantsAndHelpers.GetFullPathToTransform(parent));
         }
         return go;
     }
 
-    [PunRPC]
-    public void RpcSetParent(int viewID, Transform parent) {
-        PhotonView child = PhotonNetwork.GetPhotonView(viewID);
-        child.transform.SetParent(parent);
+    public static void DestroyNetworkedObject(GameObject go) {
+        PhotonNetwork.Destroy(go);
+    }
+
+    public static void LockRoom() {
+        if (PhotonNetwork.IsMasterClient) {
+            PhotonNetwork.CurrentRoom.IsOpen = false;
+        }
+    }
+
+    public static void UnlockRoom() {
+        if (PhotonNetwork.IsMasterClient) {
+            PhotonNetwork.CurrentRoom.IsOpen = true;
+        }
     }
 }

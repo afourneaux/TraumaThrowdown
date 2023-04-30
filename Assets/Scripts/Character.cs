@@ -13,35 +13,43 @@ public class Character : MonoBehaviourPunCallbacks, IPunObservable
     const float JUMP_FORCE = 8f;
     const int MAX_HP = 100;
 
-    int hp;
+    int _hp;
+    public int hp {
+        get {
+            return _hp;
+        }
+        set {
+            _hp = value;
+            OnHpChanged();
+        }
+    }
     bool isJumpReady = false;
     bool doJump = false;
     Rigidbody2D rb;
     RectTransform healthbarRT;
-
-    float _debugHP = (float)MAX_HP;
+    PlayerController player;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        Debug.Log("Character created here:");
+        Debug.Log(ConstantsAndHelpers.GetFullPathToTransform(transform));
+        player = transform.parent.GetComponent<PlayerController>();
         healthbarRT = transform.Find("CharacterUI/HealthBarValue").GetComponent<RectTransform>();
         hp = MAX_HP;
+        transform.Find("CharacterUI/PlayerName").GetComponent<TMPro.TMP_Text>().text = photonView.name;
     }
 
     void Update()
     {
-        if (hp <= 0) {
-            transform.parent.GetComponent<PlayerController>().KillCharacter();
+        if (!photonView.IsMine) {
             return;
         }
-        float healthPercentage = (float)hp / (float)MAX_HP;
-        healthbarRT.sizeDelta = new Vector2(healthPercentage, healthbarRT.sizeDelta.y);
+        
         float dt = Time.deltaTime;
         if (Input.GetKeyDown(KeyCode.W)) {
             doJump = true;
         }
-        _debugHP = _debugHP - (dt * 20);
-        hp = Mathf.FloorToInt(_debugHP);
     }
 
     void FixedUpdate() 
@@ -71,10 +79,6 @@ public class Character : MonoBehaviourPunCallbacks, IPunObservable
         doJump = false;
     }
 
-    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
-    {
-    }
-
     void OnCollisionEnter2D(Collision2D collision) {
         if (collision.collider.gameObject.layer == 3) {
             Debug.Log("Groundbang");
@@ -85,9 +89,24 @@ public class Character : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
+    void OnHpChanged() {
+        float healthPercentage = (float)hp / (float)MAX_HP;
+        healthbarRT.sizeDelta = new Vector2(healthPercentage, healthbarRT.sizeDelta.y);
+    }
+
     public void OnHurtBox(Collider2D collider) {
         if (collider.gameObject.layer == 7) {
             Debug.Log("Hurtboxed");
         }
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+    }
+
+    [PunRPC]
+    public void RpcSetParent(int viewID, string parent) {
+        PhotonView child = PhotonNetwork.GetPhotonView(viewID);
+        child.transform.SetParent(transform.Find(parent));
     }
 }
