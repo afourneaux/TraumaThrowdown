@@ -23,9 +23,13 @@ public class SetupUIController : MonoBehaviour
     }
 
     void Start() {
-        AudioController.instance.PlayMusic("menu_a");
+        AudioController.instance.PlayMusic("menu");
         countdownText = transform.Find("/UI/Countdown").GetComponent<TMPro.TMP_Text>();
-        NetworkController.SpawnNetworkedObject("Player", Vector2.zero);
+        if (PlayerController.instance == null) {
+            NetworkController.SpawnNetworkedObject("Player", Vector2.zero);
+        } else {
+            PlayerController.instance.Reset();
+        }
         NetworkController.UnlockRoom();
     }
 
@@ -41,11 +45,17 @@ public class SetupUIController : MonoBehaviour
                 playerBlock.SetActive(true);
                 playerBlock.transform.Find("Ready").GetComponent<Image>().sprite = player.isReady ? ConstantsAndHelpers.GetSprite("art_green") : ConstantsAndHelpers.GetSprite("art_red");
                 playerBlock.transform.Find("Name").GetComponent<TMPro.TMP_Text>().text = player.photonView.Controller.NickName;
-                playerBlock.transform.Find("Character").GetComponent<Image>().sprite = player.hasSelectedCharacter ? ConstantsAndHelpers.GetSprite(SpriteNames[player.selectedCharacter]) : null;
+                Image image = playerBlock.transform.Find("Character").GetComponent<Image>();
+                if (player.selectedCharacter == ConstantsAndHelpers.CharacterEnum.NONE) {
+                    image.enabled = false;
+                } else {
+                    image.enabled = true;
+                    image.sprite = ConstantsAndHelpers.GetSprite(SpriteNames[player.selectedCharacter]);
+                }
             }
-            isCountdownActive = PlayerController.AllPlayers.All(p => p.isReady);
+            isCountdownActive = PlayerController.AllPlayers.Count > 1 && PlayerController.AllPlayers.All(p => p.isReady);
             if (isCountdownActive) {
-                countdown = ConstantsAndHelpers.COUNTDOWN_LENGTH;
+                countdown = ConstantsAndHelpers.START_GAMECOUNTDOWN_LENGTH;
                 NetworkController.LockRoom();
             } else {
                 NetworkController.UnlockRoom();
@@ -57,11 +67,11 @@ public class SetupUIController : MonoBehaviour
                 if (PlayerController.instance.isReady) {
                     transform.Find($"/UI/CharacterSelect/CharacterSelect{characterIndex}").GetComponent<Button>().interactable = false;
                 } else {
-                    bool isInUse = PlayerController.AllPlayers.Any(p => p.hasSelectedCharacter && p.selectedCharacter == (ConstantsAndHelpers.CharacterEnum)characterIndex);
+                    bool isInUse = PlayerController.AllPlayers.Any(p => p.selectedCharacter == (ConstantsAndHelpers.CharacterEnum)characterIndex);
                     transform.Find($"/UI/CharacterSelect/CharacterSelect{characterIndex}").GetComponent<Button>().interactable = !isInUse;
                 }
             }
-            transform.Find("/UI/Connection/ReadyBtn").GetComponent<Button>().interactable = PlayerController.instance.hasSelectedCharacter;
+            transform.Find("/UI/Connection/ReadyBtn").GetComponent<Button>().interactable = PlayerController.instance.selectedCharacter != ConstantsAndHelpers.CharacterEnum.NONE;
             PlayerController.isDirty = false;
         } else {
             if (isCountdownActive) {
@@ -77,20 +87,28 @@ public class SetupUIController : MonoBehaviour
         countdownText.enabled = isCountdownActive;
     }
 
+    // TODO: Add character DEselect button
     public void CharacterSelectBtnOnClick(int selection) {
-        if (PlayerController.AllPlayers.Any(p => p.hasSelectedCharacter && p.selectedCharacter == (ConstantsAndHelpers.CharacterEnum)selection)) {
+        if (PlayerController.AllPlayers.Any(p => p.selectedCharacter == (ConstantsAndHelpers.CharacterEnum)selection)) {
             // Two people selected a character at almost the same time. First one gets it
+            AudioController.instance.PlaySound("UICancel");
             return;
         }
-        PlayerController.instance.hasSelectedCharacter = true;
+        AudioController.instance.PlaySound("UISelect");
         PlayerController.instance.selectedCharacter = (ConstantsAndHelpers.CharacterEnum)selection;
     }
 
     public void ReadyBtnOnClick() {
         PlayerController.instance.isReady = !PlayerController.instance.isReady;
+        if (PlayerController.instance.isReady) {
+            AudioController.instance.PlaySound("UISelect");
+        } else {
+            AudioController.instance.PlaySound("UICancel");
+        }
     }
 
     public void DisconnectBtnOnClick() {
+        AudioController.instance.PlaySound("UICancel");
         NetworkController.Disconnect();
     }
 }

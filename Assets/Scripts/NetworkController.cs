@@ -10,6 +10,7 @@ public class NetworkController : MonoBehaviourPunCallbacks
     Button connectBtn;
     TMPro.TMP_InputField roomNameInput;
     TMPro.TMP_InputField playerNameInput;
+    public string nameToBlame = "";
 
     public override void OnEnable()
     {
@@ -33,6 +34,11 @@ public class NetworkController : MonoBehaviourPunCallbacks
     }
 
     void Connect() {
+        if (roomNameInput.text.Length == 0 || playerNameInput.text.Length == 0) {
+            AudioController.instance.PlaySound("UICancel");
+            return;
+        }
+        AudioController.instance.PlaySound("UISelect");
         roomNameInput.interactable = false;
         playerNameInput.interactable = false;
         connectBtn.interactable = false;
@@ -46,6 +52,14 @@ public class NetworkController : MonoBehaviourPunCallbacks
     public override void OnJoinedRoom() {
         base.OnJoinedRoom();
         ChangeScene("SetupScene");
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer) {
+        if (PhotonNetwork.CurrentRoom.IsOpen == false) {
+            nameToBlame = otherPlayer.NickName;
+            Disconnect();
+        }
+        base.OnPlayerLeftRoom(otherPlayer);
     }
 
     #endregion

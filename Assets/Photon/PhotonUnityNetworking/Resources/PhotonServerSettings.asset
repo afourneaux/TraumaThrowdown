@@ -42,6 +42,10 @@ MonoBehaviour:
   - RpcSetParent
   - RpcPlayerLeft
   - RPCSpawnCharacter
+  - RPCDoHit
+  - RPCConfigureCharacter
+  - RPCConfigureProjectile
+  - RPCDisconnect
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

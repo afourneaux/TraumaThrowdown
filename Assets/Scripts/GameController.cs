@@ -8,10 +8,15 @@ using Photon.Pun;
 public class GameController : MonoBehaviour
 {
     public static GameController instance;
-    Transform PlayerHolderTransform;
-    bool isGameOn = false;
+    public GameObject ScoreDisplayPrefab;
+    public GameObject LifeIconPrefab;
+    public GameObject LifeNumberPrefab;
+    public GameObject VictoryScreen;
+    public GameObject PauseScreen;
+    bool isGameOver = false;
     List<Vector2> Spawners;
     List<float> SpawnerCooldowns;
+    Dictionary<PlayerController, GameObject> PlayerLives;
 
     void OnEnable() {
         if (instance == null) {
@@ -22,6 +27,15 @@ public class GameController : MonoBehaviour
     }
 
     void Start() {
+        AudioController.instance.PlayMusic("battle_theme");
+        Transform PlayerLivesUI = transform.Find("/UI/PlayerLives");
+        PlayerLives = new Dictionary<PlayerController, GameObject>();
+        foreach (PlayerController player in PlayerController.AllPlayers) {
+            GameObject go = Instantiate(ScoreDisplayPrefab, PlayerLivesUI);
+            go.transform.Find("PlayerName").GetComponent<TMPro.TMP_Text>().text = player.photonView.Owner.NickName;
+            PlayerLives.Add(player, go);
+        }
+
         if (!PhotonNetwork.IsMasterClient) {
             return;
         }
@@ -39,6 +53,55 @@ public class GameController : MonoBehaviour
     }
 
     void Update() {
+        if (isGameOver) {
+            return;
+        }
+        int playersAlive = 0;
+        foreach (PlayerController player in PlayerController.AllPlayers) {
+            if (player.isLivesDirty) {
+                player.isLivesDirty = false;
+                GameObject container = PlayerLives[player];
+                Transform iconContainer = container.transform.Find("Icons");
+                foreach (Transform child in iconContainer) {
+                    Destroy(child.gameObject);
+                }
+                if (player.lives > 3) {
+                    GameObject go = Instantiate(LifeIconPrefab, iconContainer);
+                    go.transform.GetComponent<Image>().sprite = ConstantsAndHelpers.GetSprite(player.selectedCharacter);
+                    GameObject textGO = Instantiate(LifeNumberPrefab, iconContainer);
+                    textGO.GetComponent<TMPro.TMP_Text>().text = player.lives.ToString();
+                } else if (player.lives > 0) {
+                    Sprite sprite = ConstantsAndHelpers.GetSprite(player.selectedCharacter);
+                    for (int i = 0; i < player.lives; i++) {
+                        GameObject go = Instantiate(LifeIconPrefab, iconContainer);
+                        go.transform.GetComponent<Image>().sprite = ConstantsAndHelpers.GetSprite(player.selectedCharacter);
+                    }
+                } else {
+                    container.transform.Find("isDead").gameObject.SetActive(true);
+                }
+            }
+            if (player.lives > 0) {
+                playersAlive++;
+            }
+        }
+
+        if (playersAlive <= 1) {
+            isGameOver = true;
+            PlayerController winner = PlayerController.AllPlayers.First(p => p.lives > 0);
+            if (PlayerController.instance.character != null) {
+                NetworkController.DestroyNetworkedObject(PlayerController.instance.character.gameObject);
+            }
+            VictoryScreen.SetActive(true);
+            VictoryScreen.transform.Find("Panel/Image").GetComponent<Image>().sprite = ConstantsAndHelpers.GetSprite(winner.selectedCharacter, true);
+            VictoryScreen.transform.Find("Panel/Text").GetComponent<TMPro.TMP_Text>().text = $"Congratulations {winner.photonView.Owner.NickName}!";
+            if (PhotonNetwork.LocalPlayer.IsMasterClient == false) {
+                VictoryScreen.transform.Find("Panel/Button").GetComponent<Button>().interactable = false;
+                VictoryScreen.transform.Find("Panel/Button/Text").GetComponent<TMPro.TMP_Text>().text = $"Waiting for host {PhotonNetwork.MasterClient.NickName}";
+            }
+            AudioController.instance.PlayMusic("VictoryFanfare");
+            return;
+        }
+
         if (!PhotonNetwork.IsMasterClient) {
             return;
         }
@@ -49,11 +112,30 @@ public class GameController : MonoBehaviour
         foreach (PlayerController player in PlayerController.AllPlayers.Where(p => p.character == null && p.respawnState == ConstantsAndHelpers.RespawnState.NOW)) {
             SpawnCharacter(player);
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            PauseScreen.SetActive(!PauseScreen.activeSelf);
+            if (PauseScreen.activeSelf) {
+                AudioController.instance.PlaySound("UISelect");
+            } else {
+                AudioController.instance.PlaySound("UICancel");
+            }
+        }
+    }
+
+    public void ClosePauseMenu() {
+        AudioController.instance.PlaySound("UICancel");
+        PauseScreen.SetActive(false);
+    }
+
+    public void QuitGame() {
+        AudioController.instance.PlaySound("UICancel");
+        NetworkController.Disconnect();
     }
 
     public void EndMatch() {
+        AudioController.instance.PlaySound("UISelect");
         NetworkController.ChangeScene("SetupScene");
-        instance.isGameOn = false;
     }
 
     // TODO - make sure we don't spawn where someone is already standing
