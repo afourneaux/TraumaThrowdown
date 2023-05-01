@@ -41,6 +41,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
     protected float attackCooldown = 0;
     protected float iframeTimer = 0f;
     public bool isInvincible = false;
+    public bool faceLeft = false;
 
     protected virtual void Start()
     {
@@ -62,6 +63,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
         } else {
             sr.color = Color.white;
         }
+        sr.flipX = faceLeft;
         if (!photonView.IsMine) {
             return;
         }
@@ -82,13 +84,13 @@ public abstract class Character : MonoBehaviourPunCallbacks
         }
 
         if (Input.GetKey(KeyCode.A)) {
-            sr.flipX = true;
+            faceLeft = true;
             Vector2 newSpeed = rb.velocity + Vector2.left * Time.fixedDeltaTime * ACCELERATION;
             newSpeed.x = Mathf.Max(newSpeed.x, -MAX_SPEED);
             rb.velocity = newSpeed;
         }
         if (Input.GetKey(KeyCode.D)) {
-            sr.flipX = false;
+            faceLeft = false;
             Vector2 newSpeed = rb.velocity + Vector2.right * Time.fixedDeltaTime * ACCELERATION;
             newSpeed.x = Mathf.Min(newSpeed.x, MAX_SPEED);
             rb.velocity = newSpeed;

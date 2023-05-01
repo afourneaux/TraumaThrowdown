@@ -5,22 +5,9 @@ using System.Linq;
 
 public class SetupUIController : MonoBehaviour
 {
-    Dictionary<ConstantsAndHelpers.CharacterEnum, string> SpriteNames;
     bool isCountdownActive = false;
     float countdown = 0f;
     TMPro.TMP_Text countdownText;
-
-    void OnEnable() {
-        SpriteNames = new Dictionary<ConstantsAndHelpers.CharacterEnum, string>();
-        SpriteNames.Add(ConstantsAndHelpers.CharacterEnum.HORALDIN, "horaldin");
-        SpriteNames.Add(ConstantsAndHelpers.CharacterEnum.ISIS, "isis");
-        SpriteNames.Add(ConstantsAndHelpers.CharacterEnum.LOUIS, "louis");
-        SpriteNames.Add(ConstantsAndHelpers.CharacterEnum.OSIRIS, "osiris");
-        SpriteNames.Add(ConstantsAndHelpers.CharacterEnum.SCREAM, "scream");
-        SpriteNames.Add(ConstantsAndHelpers.CharacterEnum.VAKIR, "vakir");
-        SpriteNames.Add(ConstantsAndHelpers.CharacterEnum.WATSON, "watson");
-        SpriteNames.Add(ConstantsAndHelpers.CharacterEnum.WILLA, "willa");
-    }
 
     void Start() {
         AudioController.instance.PlayMusic("menu");
@@ -50,7 +37,7 @@ public class SetupUIController : MonoBehaviour
                     image.enabled = false;
                 } else {
                     image.enabled = true;
-                    image.sprite = ConstantsAndHelpers.GetSprite(SpriteNames[player.selectedCharacter]);
+                    image.sprite = ConstantsAndHelpers.GetSprite(ConstantsAndHelpers.EnumToName[player.selectedCharacter]);
                 }
             }
             isCountdownActive = PlayerController.AllPlayers.Count > 1 && PlayerController.AllPlayers.All(p => p.isReady);
@@ -96,6 +83,7 @@ public class SetupUIController : MonoBehaviour
         }
         AudioController.instance.PlaySound("UISelect");
         PlayerController.instance.selectedCharacter = (ConstantsAndHelpers.CharacterEnum)selection;
+        AudioController.instance.PlayMusic($"theme_{ConstantsAndHelpers.EnumToName[(ConstantsAndHelpers.CharacterEnum)selection]}");
     }
 
     public void ReadyBtnOnClick() {

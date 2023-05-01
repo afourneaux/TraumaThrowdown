@@ -3,6 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+    TODO LIST OF THINGS TODO
+    Implement more audio - countdown beeps, footsteps, Jump/Fall, etc
+    Levels and level selection
+    Unique character abilities
+    Camera control
+    Score on lobby page
+    Art/Animation
+    Menu design
+*/
+
+
 public class ConstantsAndHelpers
 {
     public enum CharacterEnum {
@@ -32,7 +44,7 @@ public class ConstantsAndHelpers
     public const int START_LIVES = 3;
     public const float START_GAMECOUNTDOWN_LENGTH = 5f;
     public const float IFRAME_DURATION = 0.2f;
-    public static Dictionary<ConstantsAndHelpers.CharacterEnum, string> SpriteNames = new Dictionary<ConstantsAndHelpers.CharacterEnum, string>() {
+    public static Dictionary<ConstantsAndHelpers.CharacterEnum, string> EnumToName = new Dictionary<ConstantsAndHelpers.CharacterEnum, string>() {
         { CharacterEnum.HORALDIN, "horaldin" },
         { CharacterEnum.ISIS, "isis" },
         { CharacterEnum.LOUIS, "louis" },
@@ -40,7 +52,8 @@ public class ConstantsAndHelpers
         { CharacterEnum.SCREAM, "scream" },
         { CharacterEnum.VAKIR, "vakir" },
         { CharacterEnum.WATSON, "watson" },
-        { CharacterEnum.WILLA, "willa" }
+        { CharacterEnum.WILLA, "willa" },
+        { CharacterEnum.NONE, null }
     };
 
     public static string GetFullPathToTransform(Transform transform) {
@@ -61,7 +74,7 @@ public class ConstantsAndHelpers
     }
 
     public static Sprite GetSprite(CharacterEnum key, bool victory = false) {
-        string spriteKey = SpriteNames[key];
+        string spriteKey = EnumToName[key];
         if (victory) {
             spriteKey = $"victory_{spriteKey}";
         }

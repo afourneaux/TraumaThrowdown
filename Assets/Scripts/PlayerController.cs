@@ -109,6 +109,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             if (hasCharacter) {
                 stream.SendNext(character.hp);
                 stream.SendNext(character.isInvincible);
+                stream.SendNext(character.faceLeft);
             }
         } else {
             isReady = (bool)stream.ReceiveNext();
@@ -119,6 +120,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             if (hasCharacter) {
                 character.hp = (int)stream.ReceiveNext();
                 character.isInvincible = (bool)stream.ReceiveNext();
+                character.faceLeft = (bool)stream.ReceiveNext();
             }
         }
     }

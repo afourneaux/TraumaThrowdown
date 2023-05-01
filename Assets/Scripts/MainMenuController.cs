@@ -31,4 +31,8 @@ public class MainMenuController : MonoBehaviour
         AudioController.instance.PlaySound("UISelect");
         SceneManager.LoadScene("LobbyScene");
     }
+
+    public void OnAudioDemoClick() {
+        AudioController.instance.PlaySound("attack_hammer");
+    }
 }
