@@ -9,11 +9,8 @@ public class AudioController : MonoBehaviour
     string musicID;
 
     float masterVolume = 1.0f;
-    bool masterMute = false;
     float soundVolume = 1.0f;
-    bool soundMute = false;
     float musicVolume = 1.0f;
-    bool musicMute = false;
     int counter = 1;
 
     void OnEnable() {

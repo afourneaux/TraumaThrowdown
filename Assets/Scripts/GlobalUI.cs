@@ -33,6 +33,18 @@ public class GlobalUI : MonoBehaviour
         SetPauseActive(true);
     }
 
+    public void ChangeMasterVolume(float newValue) {
+        AudioController.instance.ChangeMasterVolume(newValue);
+    }
+
+    public void ChangeMusicVolume(float newValue) {
+        AudioController.instance.ChangeMusicVolume(newValue);
+    }
+
+    public void ChangeSoundVolume(float newValue) {
+        AudioController.instance.ChangeSoundVolume(newValue);
+    }
+
     public void QuitGame() {
         AudioController.instance.PlaySound("UICancel");
         isMenuOpen = false;

@@ -2127,8 +2127,8 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2040381845}
-        m_TargetAssemblyTypeName: AudioController, Assembly-CSharp
+      - m_Target: {fileID: 784038839}
+        m_TargetAssemblyTypeName: GlobalUI, Assembly-CSharp
         m_MethodName: ChangeMasterVolume
         m_Mode: 0
         m_Arguments:
@@ -3275,8 +3275,8 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2040381845}
-        m_TargetAssemblyTypeName: AudioController, Assembly-CSharp
+      - m_Target: {fileID: 784038839}
+        m_TargetAssemblyTypeName: GlobalUI, Assembly-CSharp
         m_MethodName: ChangeSoundVolume
         m_Mode: 0
         m_Arguments:
@@ -4019,8 +4019,8 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 2040381845}
-        m_TargetAssemblyTypeName: AudioController, Assembly-CSharp
+      - m_Target: {fileID: 784038839}
+        m_TargetAssemblyTypeName: GlobalUI, Assembly-CSharp
         m_MethodName: ChangeMusicVolume
         m_Mode: 0
         m_Arguments:
