@@ -14,6 +14,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
     protected virtual float JUMP_FORCE => 10f;
     protected virtual int MAX_HP => 100;
     protected virtual float ATTACK_COOLDOWN => 0.7f;
+    protected virtual string WALK_SFX => "StepsMid";
 
     protected virtual ConstantsAndHelpers.CharacterEnum character {
         get { return ConstantsAndHelpers.CharacterEnum.NONE; }
@@ -42,6 +43,8 @@ public abstract class Character : MonoBehaviourPunCallbacks
     protected float iframeTimer = 0f;
     public bool isInvincible = false;
     public bool faceLeft = false;
+    private bool isAirborne = true;
+    private string walkSfxId = null;
 
     protected virtual void Start()
     {
@@ -72,6 +75,11 @@ public abstract class Character : MonoBehaviourPunCallbacks
         attackCooldown -= dt;
         iframeTimer -= dt;
         isInvincible = iframeTimer > 0;
+        
+        if (GlobalUI.isMenuOpen) {
+            return;
+        }
+
         if (Input.GetKeyDown(KeyCode.W)) {
             doJump = true;
         }
@@ -82,18 +90,36 @@ public abstract class Character : MonoBehaviourPunCallbacks
         if (!photonView.IsMine) {
             return;
         }
+        
+        if (GlobalUI.isMenuOpen) {
+            return;
+        }
+        
+        bool isMoving = false;
 
         if (Input.GetKey(KeyCode.A)) {
             faceLeft = true;
             Vector2 newSpeed = rb.velocity + Vector2.left * Time.fixedDeltaTime * ACCELERATION;
             newSpeed.x = Mathf.Max(newSpeed.x, -MAX_SPEED);
             rb.velocity = newSpeed;
+            isMoving = true;
         }
         if (Input.GetKey(KeyCode.D)) {
             faceLeft = false;
             Vector2 newSpeed = rb.velocity + Vector2.right * Time.fixedDeltaTime * ACCELERATION;
             newSpeed.x = Mathf.Min(newSpeed.x, MAX_SPEED);
             rb.velocity = newSpeed;
+            isMoving = true;
+        }
+        if (isMoving && !isAirborne) {
+            if (string.IsNullOrEmpty(walkSfxId)) {
+                walkSfxId = AudioController.instance.PlaySound(WALK_SFX, true);
+            }
+        } else {
+            if (!string.IsNullOrEmpty(walkSfxId)) {
+                AudioController.instance.StopByID(walkSfxId);
+                walkSfxId = null;
+            }
         }
         if (doJump && isJumpReady) {
             Vector2 newSpeed = rb.velocity;
@@ -102,6 +128,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
             rb.velocity = newSpeed;
             rb.AddForce(Vector2.up * JUMP_FORCE, ForceMode2D.Impulse);
             isJumpReady = false;
+            AudioController.instance.PlaySound("JumpRise");
         }
         doJump = false;
     }
@@ -111,8 +138,9 @@ public abstract class Character : MonoBehaviourPunCallbacks
         if (collision.collider.gameObject.layer == 3) {
             Vector3 normal = collision.collider.bounds.ClosestPoint(transform.position) - transform.position;
             if (normal.y <= 0) {
-                AudioController.instance.PlaySound("Thud", false, photonView.IsMine ? 1f : 0.5f);
+                AudioController.instance.PlaySound("JumpLand", false, photonView.IsMine ? 1f : 0.5f);
                 isJumpReady = true;
+                isAirborne = false;
             }
         }
         // Player
@@ -133,6 +161,10 @@ public abstract class Character : MonoBehaviourPunCallbacks
         }
     }
 
+    void OnCollisionExit2D() {
+        isAirborne = true;
+    }
+
     protected virtual void OnHpChanged(int oldHP, int newHP) {
         if (isInitialised) {
             float healthPercentage = (float)newHP / (float)MAX_HP;
@@ -142,5 +174,11 @@ public abstract class Character : MonoBehaviourPunCallbacks
 
     public void StartIFrame() {
         iframeTimer = ConstantsAndHelpers.IFRAME_DURATION;
+    }
+
+    void OnDestroy() {
+        if (!string.IsNullOrEmpty(walkSfxId)) {
+            AudioController.instance.StopByID(walkSfxId);
+        }
     }
 }

@@ -8,6 +8,7 @@ using Photon.Pun;
 public class Vakir : Character
 {
     protected override float JUMP_FORCE => 12f;
+    protected override string WALK_SFX => "StepsVerySlow";
     protected override ConstantsAndHelpers.CharacterEnum character => ConstantsAndHelpers.CharacterEnum.VAKIR;
 
     protected override void Start() {
@@ -17,6 +18,9 @@ public class Vakir : Character
     protected override void Update() {
         base.Update();
         if (!photonView.IsMine) {
+            return;
+        }
+        if (GlobalUI.isMenuOpen) {
             return;
         }
 

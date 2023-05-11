@@ -19,6 +19,9 @@ public class Watson : Character
         if (!photonView.IsMine) {
             return;
         }
+        if (GlobalUI.isMenuOpen) {
+            return;
+        }
 
         if (attackCooldown <= 0 && Input.GetMouseButtonUp(0)) {
             GameObject projectileGO = NetworkController.SpawnNetworkedObject("projectile", new Vector2(transform.position.x, transform.position.y));

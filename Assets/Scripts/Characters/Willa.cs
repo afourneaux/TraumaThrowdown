@@ -7,7 +7,8 @@ using Photon.Pun;
 
 public class Willa : Character
 {
-    protected override float JUMP_FORCE => 8f;
+    protected override float JUMP_FORCE => 12f;
+    protected override string WALK_SFX => "StepsSlow";
     protected override ConstantsAndHelpers.CharacterEnum character => ConstantsAndHelpers.CharacterEnum.WILLA;
 
     protected override void Start() {
@@ -17,6 +18,9 @@ public class Willa : Character
     protected override void Update() {
         base.Update();
         if (!photonView.IsMine) {
+            return;
+        }
+        if (GlobalUI.isMenuOpen) {
             return;
         }
 

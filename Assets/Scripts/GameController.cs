@@ -7,12 +7,12 @@ using Photon.Pun;
 
 public class GameController : MonoBehaviour
 {
+    private const bool DEBUG_ALLOW_GAME_OVER = false;
     public static GameController instance;
     public GameObject ScoreDisplayPrefab;
     public GameObject LifeIconPrefab;
     public GameObject LifeNumberPrefab;
     public GameObject VictoryScreen;
-    public GameObject PauseScreen;
     bool isGameOver = false;
     List<Vector2> Spawners;
     List<float> SpawnerCooldowns;
@@ -27,6 +27,7 @@ public class GameController : MonoBehaviour
     }
 
     void Start() {
+        //AudioController.instance.StopMusic();
         AudioController.instance.PlayMusic("battle_theme");
         Transform PlayerLivesUI = transform.Find("/UI/PlayerLives");
         PlayerLives = new Dictionary<PlayerController, GameObject>();
@@ -53,7 +54,7 @@ public class GameController : MonoBehaviour
     }
 
     void Update() {
-        if (isGameOver) {
+        if (isGameOver && DEBUG_ALLOW_GAME_OVER) {
             return;
         }
         int playersAlive = 0;
@@ -85,7 +86,7 @@ public class GameController : MonoBehaviour
             }
         }
 
-        if (playersAlive <= 1) {
+        if (playersAlive <= 1 && DEBUG_ALLOW_GAME_OVER) {
             isGameOver = true;
             PlayerController winner = PlayerController.AllPlayers.First(p => p.lives > 0);
             if (PlayerController.instance.character != null) {
@@ -112,25 +113,6 @@ public class GameController : MonoBehaviour
         foreach (PlayerController player in PlayerController.AllPlayers.Where(p => p.character == null && p.respawnState == ConstantsAndHelpers.RespawnState.NOW)) {
             SpawnCharacter(player);
         }
-
-        if (Input.GetKeyDown(KeyCode.Escape)) {
-            PauseScreen.SetActive(!PauseScreen.activeSelf);
-            if (PauseScreen.activeSelf) {
-                AudioController.instance.PlaySound("UISelect");
-            } else {
-                AudioController.instance.PlaySound("UICancel");
-            }
-        }
-    }
-
-    public void ClosePauseMenu() {
-        AudioController.instance.PlaySound("UICancel");
-        PauseScreen.SetActive(false);
-    }
-
-    public void QuitGame() {
-        AudioController.instance.PlaySound("UICancel");
-        NetworkController.Disconnect();
     }
 
     public void EndMatch() {

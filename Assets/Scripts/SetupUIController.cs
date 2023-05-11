@@ -5,6 +5,7 @@ using System.Linq;
 
 public class SetupUIController : MonoBehaviour
 {
+    private const bool DEBUG_ALLOW_SOLO_PLAY = true;
     bool isCountdownActive = false;
     float countdown = 0f;
     TMPro.TMP_Text countdownText;
@@ -40,7 +41,7 @@ public class SetupUIController : MonoBehaviour
                     image.sprite = ConstantsAndHelpers.GetSprite(ConstantsAndHelpers.EnumToName[player.selectedCharacter]);
                 }
             }
-            isCountdownActive = PlayerController.AllPlayers.Count > 1 && PlayerController.AllPlayers.All(p => p.isReady);
+            isCountdownActive = (DEBUG_ALLOW_SOLO_PLAY || PlayerController.AllPlayers.Count > 1) && PlayerController.AllPlayers.All(p => p.isReady);
             if (isCountdownActive) {
                 countdown = ConstantsAndHelpers.START_GAMECOUNTDOWN_LENGTH;
                 NetworkController.LockRoom();
@@ -93,10 +94,5 @@ public class SetupUIController : MonoBehaviour
         } else {
             AudioController.instance.PlaySound("UICancel");
         }
-    }
-
-    public void DisconnectBtnOnClick() {
-        AudioController.instance.PlaySound("UICancel");
-        NetworkController.Disconnect();
     }
 }

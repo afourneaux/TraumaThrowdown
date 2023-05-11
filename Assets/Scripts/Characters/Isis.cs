@@ -8,6 +8,7 @@ using Photon.Pun;
 public class Isis : Character
 {
     protected override float JUMP_FORCE => 12f;
+    protected override string WALK_SFX => "StepsVeryFast";
     protected override ConstantsAndHelpers.CharacterEnum character => ConstantsAndHelpers.CharacterEnum.ISIS;
 
     protected override void Start() {
@@ -17,6 +18,9 @@ public class Isis : Character
     protected override void Update() {
         base.Update();
         if (!photonView.IsMine) {
+            return;
+        }
+        if (GlobalUI.isMenuOpen) {
             return;
         }
 
