@@ -12,7 +12,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
     protected virtual float JUMP_MAX_RECOVERY_MOMENTUM => 2.0f;
     protected virtual float JUMP_MAX_UPWARD_MOMENTUM => 4.0f;
     protected virtual float JUMP_FORCE => 10f;
-    protected virtual int MAX_HP => 100;
+    protected virtual short MAX_HP => 100;
     protected virtual float ATTACK_COOLDOWN => 0.7f;
     protected virtual string WALK_SFX => "StepsMid";
 
@@ -20,8 +20,8 @@ public abstract class Character : MonoBehaviourPunCallbacks
         get { return ConstantsAndHelpers.CharacterEnum.NONE; }
     }
 
-    int _hp;
-    public int hp {
+    short _hp;
+    public short hp {
         get {
             return _hp;
         }
@@ -165,7 +165,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
         isAirborne = true;
     }
 
-    protected virtual void OnHpChanged(int oldHP, int newHP) {
+    protected virtual void OnHpChanged(short oldHP, short newHP) {
         if (isInitialised) {
             float healthPercentage = (float)newHP / (float)MAX_HP;
             healthbarRT.sizeDelta = new Vector2(healthPercentage, healthbarRT.sizeDelta.y);

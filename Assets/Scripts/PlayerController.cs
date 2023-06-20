@@ -21,8 +21,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     
     float respawnTimer;
     public ConstantsAndHelpers.RespawnState respawnState;
-    int _lives = ConstantsAndHelpers.START_LIVES;
-    public int lives {
+    short _lives = ConstantsAndHelpers.START_LIVES;
+    public short lives {
         get {
             return _lives;
         }
@@ -47,7 +47,14 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
+    int DEBUGdataSent;
+    int DEBUGdataReceived;
+    float debugCountdown = 10f;
+    float DEBUG_TIME_BRACKET = 10f;
+
     public override void OnEnable() {
+        DEBUGdataSent = 0;
+        DEBUGdataReceived = 0;
         if (photonView.IsMine) {
             if (instance == null) {
                 instance = this;
@@ -65,14 +72,16 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         base.OnEnable();
     }
 
-    void Start()
-    {
-    }
-
     void Update()
     {
         if (photonView.IsMine == false) {
             return;
+        }
+        debugCountdown -= Time.deltaTime;
+        if (debugCountdown < 0) {
+            NetworkController.instance.DEBUGProfilerReceived.Add(DEBUGdataReceived);
+            NetworkController.instance.DEBUGProfilerSent.Add(DEBUGdataSent);
+            debugCountdown = DEBUG_TIME_BRACKET;
         }
         if (character?.isInitialised == true && character?.hp <= 0) {
             NetworkController.DestroyNetworkedObject(character.gameObject);
@@ -106,21 +115,32 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
             stream.SendNext(respawnState);
             bool hasCharacter = character != null;
             stream.SendNext(hasCharacter);
+            DEBUGdataSent += sizeof(bool) * 2 
+                        + sizeof(ConstantsAndHelpers.CharacterEnum) 
+                        + sizeof(ConstantsAndHelpers.RespawnState) 
+                        + sizeof(short);
             if (hasCharacter) {
                 stream.SendNext(character.hp);
                 stream.SendNext(character.isInvincible);
                 stream.SendNext(character.faceLeft);
+                DEBUGdataSent += sizeof(bool) * 3;
             }
+            
         } else {
             isReady = (bool)stream.ReceiveNext();
             selectedCharacter = (ConstantsAndHelpers.CharacterEnum)stream.ReceiveNext();
-            lives = (int)stream.ReceiveNext();
+            lives = (short)stream.ReceiveNext();
             respawnState = (ConstantsAndHelpers.RespawnState)stream.ReceiveNext();
             bool hasCharacter = (bool)stream.ReceiveNext();
+            DEBUGdataReceived += sizeof(bool) * 2 
+                        + sizeof(ConstantsAndHelpers.CharacterEnum) 
+                        + sizeof(ConstantsAndHelpers.RespawnState) 
+                        + sizeof(short);
             if (hasCharacter) {
-                character.hp = (int)stream.ReceiveNext();
+                character.hp = (short)stream.ReceiveNext();
                 character.isInvincible = (bool)stream.ReceiveNext();
                 character.faceLeft = (bool)stream.ReceiveNext();
+                DEBUGdataReceived += sizeof(bool) * 3;
             }
         }
     }

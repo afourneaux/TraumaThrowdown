@@ -3,6 +3,9 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 public class NetworkController : MonoBehaviourPunCallbacks
 {
@@ -12,6 +15,10 @@ public class NetworkController : MonoBehaviourPunCallbacks
     TMPro.TMP_InputField playerNameInput;
     public string nameToBlame = "";
 
+    public List<int> DEBUGProfilerSent;
+    public List<int> DEBUGProfilerReceived;
+
+
     public override void OnEnable()
     {
         if (instance == null) {
@@ -19,6 +26,8 @@ public class NetworkController : MonoBehaviourPunCallbacks
         } else {
             Destroy(gameObject);
         }
+        DEBUGProfilerSent = new List<int>();
+        DEBUGProfilerReceived = new List<int>();
         base.OnEnable();
     }
 
@@ -115,5 +124,30 @@ public class NetworkController : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient) {
             PhotonNetwork.CurrentRoom.IsOpen = true;
         }
+    }
+
+    public void PrintDebugInfo() {
+        if (DEBUGProfilerReceived.Count == 0 && DEBUGProfilerSent.Count == 0) {
+            return;
+        }
+        int matchCount = 0;
+        string filename = "";
+
+        do {
+            matchCount++;
+            filename = $"{Application.persistentDataPath}/DEBUG_MATCH_{matchCount}.txt";
+        }
+        while(File.Exists(filename));
+
+        string toWrite = "Sent\t-\tReceived";
+        for (int i = 0; i < DEBUGProfilerReceived.Count; i++) {
+            toWrite += $"\n{DEBUGProfilerSent[i]}\t-\t{DEBUGProfilerReceived[i]}";
+        }
+        byte[] info = new UTF8Encoding(true).GetBytes(toWrite);
+        using (FileStream file = File.Create(filename)) {
+            file.Write(info);
+        }
+        DEBUGProfilerReceived.Clear();
+        DEBUGProfilerSent.Clear();
     }
 }

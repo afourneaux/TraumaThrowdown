@@ -19,7 +19,7 @@ public abstract class Projectile : MonoBehaviourPunCallbacks, IPunObservable
     protected abstract float MAX_SPEED {
         get;
     }
-    protected abstract int DAMAGE {
+    protected abstract short DAMAGE {
         get;
     }
     protected abstract float IMPACT_FORCE {

@@ -7,7 +7,7 @@ using Photon.Pun;
 
 public class GameController : MonoBehaviour
 {
-    private const bool DEBUG_ALLOW_GAME_OVER = false;
+    private const bool DEBUG_ALLOW_GAME_OVER = true;
     public static GameController instance;
     public GameObject ScoreDisplayPrefab;
     public GameObject LifeIconPrefab;

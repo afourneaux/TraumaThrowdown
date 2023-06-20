@@ -11,7 +11,7 @@ public class Firebolt : Projectile
     protected override float START_SPEED => 6f;
     protected override float ACCELERATION => 3f;
     protected override float MAX_SPEED => 10f;
-    protected override int DAMAGE => 20;
+    protected override short DAMAGE => 20;
     protected override float IMPACT_FORCE => 1f;
     protected override float MAX_LIFE => 1f;
     protected override bool DESTROY_ON_GROUND => true;

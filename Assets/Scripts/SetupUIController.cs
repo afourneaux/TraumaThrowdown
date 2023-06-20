@@ -5,12 +5,13 @@ using System.Linq;
 
 public class SetupUIController : MonoBehaviour
 {
-    private const bool DEBUG_ALLOW_SOLO_PLAY = true;
+    private const bool DEBUG_ALLOW_SOLO_PLAY = false;
     bool isCountdownActive = false;
     float countdown = 0f;
     TMPro.TMP_Text countdownText;
 
     void Start() {
+        NetworkController.instance.PrintDebugInfo();
         AudioController.instance.PlayMusic("menu");
         countdownText = transform.Find("/UI/Countdown").GetComponent<TMPro.TMP_Text>();
         if (PlayerController.instance == null) {
