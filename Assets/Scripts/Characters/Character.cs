@@ -53,6 +53,8 @@ public abstract class Character : MonoBehaviourPunCallbacks
         transform.Find("CharacterUI/PlayerName").GetComponent<TMPro.TMP_Text>().text = photonView.Owner.NickName;
         if (photonView.IsMine) {
             hp = MAX_HP;
+        } else {
+            rb.bodyType = RigidbodyType2D.Static;
         }
         sr = transform.Find("Sprite").GetComponent<SpriteRenderer>();
         sr.sprite = ConstantsAndHelpers.GetSprite(character);

@@ -7,15 +7,13 @@ using Photon.Pun;
 
 public class GameController : MonoBehaviour
 {
-    private const bool DEBUG_ALLOW_GAME_OVER = true;
+    private const bool DEBUG_BLOCK_GAME_OVER = false;
     public static GameController instance;
     public GameObject ScoreDisplayPrefab;
     public GameObject LifeIconPrefab;
     public GameObject LifeNumberPrefab;
     public GameObject VictoryScreen;
     bool isGameOver = false;
-    List<Vector2> Spawners;
-    List<float> SpawnerCooldowns;
     Dictionary<PlayerController, GameObject> PlayerLives;
 
     void OnEnable() {
@@ -40,13 +38,6 @@ public class GameController : MonoBehaviour
         if (!PhotonNetwork.IsMasterClient) {
             return;
         }
-        Spawners = new List<Vector2>();
-        SpawnerCooldowns = new List<float>();
-        for (int i = 0; i < ConstantsAndHelpers.MAX_PLAYERS; i++) {
-            Vector3 position = transform.Find($"/Level/SpawnPoints/Spawner{i}").transform.position;
-            Spawners.Add(new Vector2(position.x, position.y));
-            SpawnerCooldowns.Add(0f);
-        }
 
         foreach (PlayerController player in PlayerController.AllPlayers) {
             SpawnCharacter(player);
@@ -54,7 +45,7 @@ public class GameController : MonoBehaviour
     }
 
     void Update() {
-        if (isGameOver && DEBUG_ALLOW_GAME_OVER) {
+        if (isGameOver && !DEBUG_BLOCK_GAME_OVER) {
             return;
         }
         int playersAlive = 0;
@@ -86,7 +77,7 @@ public class GameController : MonoBehaviour
             }
         }
 
-        if (playersAlive <= 1 && DEBUG_ALLOW_GAME_OVER) {
+        if (playersAlive <= 1 && !DEBUG_BLOCK_GAME_OVER) {
             isGameOver = true;
             PlayerController winner = PlayerController.AllPlayers.First(p => p.lives > 0);
             if (PlayerController.instance.character != null) {
@@ -106,10 +97,6 @@ public class GameController : MonoBehaviour
         if (!PhotonNetwork.IsMasterClient) {
             return;
         }
-        float dt = Time.deltaTime;
-        for (int i = 0; i < ConstantsAndHelpers.MAX_PLAYERS; i++) {
-            SpawnerCooldowns[i] -= dt;
-        }
         foreach (PlayerController player in PlayerController.AllPlayers.Where(p => p.character == null && p.respawnState == ConstantsAndHelpers.RespawnState.NOW)) {
             SpawnCharacter(player);
         }
@@ -120,17 +107,31 @@ public class GameController : MonoBehaviour
         NetworkController.ChangeScene("SetupScene");
     }
 
-    // TODO - make sure we don't spawn where someone is already standing
     public void SpawnCharacter(PlayerController player) {
-        int locationIndex;
-        IEnumerable<int> validSpawners = SpawnerCooldowns.Where(s => s <= 0).Select(s => SpawnerCooldowns.IndexOf(s));
-        if (validSpawners.Any()) {
-            locationIndex = Random.Range(0, validSpawners.Count() - 1);
+        Spawner candidate = null;
+        // Get all spawners
+        IEnumerable<Spawner> allSpawners = transform.Find("/Level/SpawnPoints").GetComponentsInChildren<Spawner>().OrderBy(r => Random.Range(0f, 1f));
+        // Narrow down to those that are off cooldown
+        IEnumerable<Spawner> readySpawners = allSpawners.Where(s => s.cooldown <= 0);
+
+        if (readySpawners.Any()) {
+            foreach (Spawner spawner in readySpawners) {
+                // Try not to spawn next to someone, if you can
+                if (!Physics2D.OverlapCircleAll(spawner.transform.position, ConstantsAndHelpers.SPAWNER_SAFE_RADIUS, 1 << 6).Any()) {
+                    candidate = spawner;
+                    break;
+                }
+            }
+            if (candidate == null) {
+                candidate = readySpawners.First();
+            }
         } else {
-            locationIndex = SpawnerCooldowns.IndexOf(SpawnerCooldowns.Min());
+            candidate = allSpawners.OrderBy(s => s.cooldown).First();
         }
-        SpawnerCooldowns[locationIndex] = ConstantsAndHelpers.SPAWNER_COOLDOWN;
+        Debug.Log(candidate.transform.name);
+        Debug.Log(candidate.cooldown);
+        candidate.cooldown = ConstantsAndHelpers.SPAWNER_COOLDOWN;
         player.respawnState = ConstantsAndHelpers.RespawnState.NONE;
-        player.photonView.RPC("RPCSpawnCharacter", RpcTarget.All, Spawners[locationIndex].x, Spawners[locationIndex].y);
+        player.photonView.RPC("RPCSpawnCharacter", RpcTarget.All, candidate.transform.position.x, candidate.transform.position.y);
     }
 }

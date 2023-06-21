@@ -40,6 +40,7 @@ public class ConstantsAndHelpers
 
     public const int MAX_PLAYERS = 8;
     public const float SPAWNER_COOLDOWN = 10f;
+    public const float SPAWNER_SAFE_RADIUS = 2f;
     public const float RESPAWN_DELAY = 3f;
     public const int START_LIVES = 3;
     public const float START_GAMECOUNTDOWN_LENGTH = 5f;
