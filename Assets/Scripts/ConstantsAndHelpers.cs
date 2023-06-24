@@ -39,7 +39,8 @@ public class ConstantsAndHelpers
     }
     public enum EffectType {
         NONE = -1,
-        SHIELD = 0
+        SHIELD = 0,
+        TELEPORT = 1
     }
 
     // DEBUG VALUES
@@ -71,6 +72,10 @@ public class ConstantsAndHelpers
     public const float WATSON_SHIELD_DURATION = 1f;
     public const float WATSON_SHIELD_COOLDOWN = 4f;
     // WILLA
+    public const float WILLA_TELEPORT_COOLDOWN = 6f;
+    public const float WILLA_TELEPORT_EFFECT_DURATION = 0.2f;
+    public const float WILLA_TELEPORT_MAX_DISTANCE = 6f;
+    public const float WILLA_TELEPORT_MIN_DISTANCE = 1f;
 
 
 

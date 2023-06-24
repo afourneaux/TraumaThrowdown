@@ -10,7 +10,7 @@ public abstract class Effect : MonoBehaviour
     protected float timeAlive = 0f;
 
     protected virtual void Start() {
-        transform.parent.TryGetComponent<Character>(out character);
+        character = GetComponentInParent<Character>();
         sr = GetComponent<SpriteRenderer>();
     }
     
@@ -23,6 +23,9 @@ public abstract class Effect : MonoBehaviour
         switch(effectType) {
             case ConstantsAndHelpers.EffectType.SHIELD:
                 newEffect = parent.AddComponent<Shield>();
+                break;
+            case ConstantsAndHelpers.EffectType.TELEPORT:
+                newEffect = parent.AddComponent<Teleport>();
                 break;
             default:
                 Debug.LogError($"Unrecognised effect ID: {effectType}");

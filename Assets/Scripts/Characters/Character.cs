@@ -78,9 +78,9 @@ public abstract class Character : MonoBehaviourPunCallbacks
             return;
         }
         
-        float dt = Time.deltaTime;
-        attackCooldown -= dt;
-        iframeTimer -= dt;
+        attackCooldown -=  Time.deltaTime;
+        iframeTimer -=  Time.deltaTime;
+        specialCooldown -= Time.deltaTime;
         isInvincible = iframeTimer > 0;
         
         if (GlobalUI.isMenuOpen) {

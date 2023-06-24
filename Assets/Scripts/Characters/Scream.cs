@@ -34,7 +34,6 @@ public class Scream : Character
             return;
         }
 
-        specialCooldown -= Time.deltaTime;
         invisibilityTimer -= Time.deltaTime;
 
         if (attackCooldown <= 0 && Input.GetMouseButtonUp(0)) {

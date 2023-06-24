@@ -23,8 +23,6 @@ public class Watson : Character
         if (GlobalUI.isMenuOpen) {
             return;
         }
-
-        specialCooldown -= Time.deltaTime;
         shieldTimer -= Time.deltaTime;
 
         if (attackCooldown <= 0 && Input.GetMouseButtonUp(0)) {
