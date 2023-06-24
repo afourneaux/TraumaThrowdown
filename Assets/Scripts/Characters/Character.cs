@@ -20,6 +20,10 @@ public abstract class Character : MonoBehaviourPunCallbacks
         get { return ConstantsAndHelpers.CharacterEnum.NONE; }
     }
 
+    public virtual bool IsSpecialActive() {
+        return false;
+    }
+
     short _hp;
     public short hp {
         get {

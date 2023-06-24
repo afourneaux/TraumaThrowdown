@@ -5,7 +5,7 @@ using System.Linq;
 
 public class SetupUIController : MonoBehaviour
 {
-    private const bool DEBUG_ALLOW_SOLO_PLAY = false;
+    private const bool DEBUG_ALLOW_SOLO_PLAY = true;
     bool isCountdownActive = false;
     float countdown = 0f;
     TMPro.TMP_Text countdownText;

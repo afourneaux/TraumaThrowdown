@@ -122,6 +122,13 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
+    bool IsSpecialActive() {
+        if (character == null) {
+            return false;
+        }
+        return character.IsSpecialActive();
+    }
+
     public void Reset() {
         if (photonView.IsMine == false) {
             return;
@@ -135,7 +142,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
         }
     }
 
-    // TODO - Properly block other respawn requests and tell master client when it's done
     [PunRPC]
     public void RPCSpawnCharacter(float x, float y) {
         if (photonView.IsMine == false) {
