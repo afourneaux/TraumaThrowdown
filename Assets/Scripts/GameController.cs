@@ -107,6 +107,9 @@ public class GameController : MonoBehaviour
     }
 
     public void SpawnCharacter(PlayerController player) {
+        if (!PhotonNetwork.IsMasterClient) {
+            return;
+        }
         Spawner candidate = null;
         // Get all spawners
         IEnumerable<Spawner> allSpawners = transform.Find("/Level/SpawnPoints").GetComponentsInChildren<Spawner>().OrderBy(r => Random.Range(0f, 1f));

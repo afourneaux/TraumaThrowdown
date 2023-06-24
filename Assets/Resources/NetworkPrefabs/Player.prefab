@@ -46,6 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 750a376c148d3364aad92b09114d70b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  EffectPrefab: {fileID: 6474109427862995551, guid: 53b72462e27009f4b91fab522fcb11df, type: 3}
   respawnState: 0
   isLivesDirty: 1
   character: {fileID: 0}

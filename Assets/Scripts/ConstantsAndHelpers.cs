@@ -29,13 +29,17 @@ public class ConstantsAndHelpers
         WILLA = 7
     }
     public enum RespawnState {
-        NONE = 0,
-        COUNTDOWN = 1,
-        NOW = 2
+        NONE = -1,
+        COUNTDOWN = 0,
+        NOW = 1
     }
     public enum ProjectileType {
-        NONE = 0,
-        FIREBOLT = 1
+        NONE = -1,
+        FIREBOLT = 0
+    }
+    public enum EffectType {
+        NONE = -1,
+        SHIELD = 0
     }
 
     // DEBUG VALUES
@@ -62,6 +66,10 @@ public class ConstantsAndHelpers
     public const float SCREAM_SPECIAL_COOLDOWN = 10f;
     // VAKIR
     // WATSON
+    public const float WATSON_SHIELD_VISIBILITY_FACTOR_START = 0.7f;
+    public const float WATSON_SHIELD_VISIBILITY_FACTOR_END = 0.2f;
+    public const float WATSON_SHIELD_DURATION = 1f;
+    public const float WATSON_SHIELD_COOLDOWN = 4f;
     // WILLA
 
 

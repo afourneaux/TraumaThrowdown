@@ -9,7 +9,7 @@ public class MainMenuController : MonoBehaviour
     void Start() {
         if (NetworkController.instance != null) {
             if (NetworkController.instance.nameToBlame != "") {
-                TMPro.TMP_Text errorText = transform.Find("/UI/Message").GetComponent<TMPro.TMP_Text>();
+                TMPro.TMP_Text errorText = transform.Find("/UI/ErrorMessage").GetComponent<TMPro.TMP_Text>();
                 errorText.text = $"Disconnected by user quitting: {NetworkController.instance.nameToBlame}";
                 errorText.gameObject.SetActive(true);
             }

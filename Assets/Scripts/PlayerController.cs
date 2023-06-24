@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
     public static PlayerController instance;
     public static List<PlayerController> AllPlayers;
     public static bool isDirty = false;
+    public GameObject EffectPrefab;
     private ConstantsAndHelpers.CharacterEnum _selectedCharacter = ConstantsAndHelpers.CharacterEnum.NONE;
     public ConstantsAndHelpers.CharacterEnum selectedCharacter {
         get {

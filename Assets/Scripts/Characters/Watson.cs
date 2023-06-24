@@ -9,6 +9,7 @@ public class Watson : Character
 {
     protected override float JUMP_FORCE => 12f;
     protected override ConstantsAndHelpers.CharacterEnum character => ConstantsAndHelpers.CharacterEnum.WATSON;
+    float shieldTimer = 0f;
 
     protected override void Start() {
         base.Start();
@@ -23,30 +24,45 @@ public class Watson : Character
             return;
         }
 
+        specialCooldown -= Time.deltaTime;
+        shieldTimer -= Time.deltaTime;
+
         if (attackCooldown <= 0 && Input.GetMouseButtonUp(0)) {
-            GameObject projectileGO = NetworkController.SpawnNetworkedObject("projectile", new Vector2(transform.position.x, transform.position.y));
-            photonView.RPC("RPCConfigureProjectile", RpcTarget.All, projectileGO.GetPhotonView().ViewID, (int)ConstantsAndHelpers.ProjectileType.FIREBOLT);
-            Firebolt firebolt = projectileGO.AddComponent<Firebolt>();
             Vector3 mousePositionV3 = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 mousePosition = new Vector2(mousePositionV3.x, mousePositionV3.y);
-            firebolt.SetTarget(mousePosition);
+            GameObject projectileGO = NetworkController.SpawnNetworkedObject("projectile", new Vector2(transform.position.x, transform.position.y));
+            photonView.RPC("RPCConfigureProjectile", RpcTarget.Others, projectileGO.GetPhotonView().ViewID);
+            Firebolt firebolt = projectileGO.AddComponent<Firebolt>();
+            firebolt.SetTarget(new Vector2(mousePositionV3.x, mousePositionV3.y));
             attackCooldown = ATTACK_COOLDOWN;
+        }
+
+        // Special ability: shield
+        if (specialCooldown <= 0 && !isSpecialActive && Input.GetMouseButtonUp(1)) {
+            photonView.RPC("RPCDisplayEffect", RpcTarget.All);
+            shieldTimer = ConstantsAndHelpers.WATSON_SHIELD_DURATION;
+            isSpecialActive = true;
+        }
+        if (shieldTimer <= 0 && isSpecialActive) {
+            isSpecialActive = false;
+            specialCooldown = ConstantsAndHelpers.WATSON_SHIELD_COOLDOWN;
+        }
+    }
+
+    protected override void TakeDamage(short damage) {
+        if (!isSpecialActive) {
+            base.TakeDamage(damage);
         }
     }
 
     [PunRPC]
-    void RPCConfigureProjectile(int projectileID, int projectileType) {
-        if (photonView.IsMine) {
-            return;
-        }
+    void RPCConfigureProjectile(int projectileID) {
         GameObject projectileGO = PhotonNetwork.GetPhotonView(projectileID).gameObject;
-        switch((ConstantsAndHelpers.ProjectileType)projectileType) {
-            case ConstantsAndHelpers.ProjectileType.FIREBOLT:
-                projectileGO.AddComponent<Firebolt>();
-                break;
-            default:
-                Debug.LogError($"Unrecognised projectile type - {projectileType}");
-                break;
-        }
+        Firebolt firebolt = projectileGO.AddComponent<Firebolt>();
+    }
+
+    [PunRPC]
+    void RPCDisplayEffect() {
+        GameObject effectGO = Instantiate(PlayerController.instance.EffectPrefab, transform);
+        Effect.AddEffectComponent(ConstantsAndHelpers.EffectType.SHIELD, effectGO);
     }
 }

@@ -203,6 +203,15 @@ public abstract class Character : MonoBehaviourPunCallbacks
         iframeTimer = ConstantsAndHelpers.IFRAME_DURATION;
     }
 
+    void CreateEffect(string spritename, float duration) {
+        GameObject effectGO = new GameObject();
+        SpriteRenderer effectSR = effectGO.AddComponent<SpriteRenderer>();
+        effectSR.sprite = ConstantsAndHelpers.GetSprite(spritename);
+        if (duration > 0) {
+
+        }
+    }
+
     void OnDestroy() {
         if (!string.IsNullOrEmpty(walkSfxId)) {
             AudioController.instance.StopByID(walkSfxId);
