@@ -106,6 +106,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
                 stream.SendNext(character.hp);
                 stream.SendNext(character.isInvincible);
                 stream.SendNext(character.faceLeft);
+                stream.SendNext(character.isSpecialActive);
             }
             
         } else {
@@ -118,15 +119,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IPunObservable
                 character.hp = (short)stream.ReceiveNext();
                 character.isInvincible = (bool)stream.ReceiveNext();
                 character.faceLeft = (bool)stream.ReceiveNext();
+                character.isSpecialActive = (bool)stream.ReceiveNext();
             }
         }
-    }
-
-    bool IsSpecialActive() {
-        if (character == null) {
-            return false;
-        }
-        return character.IsSpecialActive();
     }
 
     public void Reset() {

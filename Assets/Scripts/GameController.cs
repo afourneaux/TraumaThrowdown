@@ -7,7 +7,6 @@ using Photon.Pun;
 
 public class GameController : MonoBehaviour
 {
-    private const bool DEBUG_BLOCK_GAME_OVER = true;
     public static GameController instance;
     public GameObject ScoreDisplayPrefab;
     public GameObject LifeIconPrefab;
@@ -45,7 +44,7 @@ public class GameController : MonoBehaviour
     }
 
     void Update() {
-        if (isGameOver && !DEBUG_BLOCK_GAME_OVER) {
+        if (isGameOver && !ConstantsAndHelpers.DEBUG_BLOCK_GAME_OVER) {
             return;
         }
         int playersAlive = 0;
@@ -77,7 +76,7 @@ public class GameController : MonoBehaviour
             }
         }
 
-        if (playersAlive <= 1 && !DEBUG_BLOCK_GAME_OVER) {
+        if (playersAlive <= 1 && !ConstantsAndHelpers.DEBUG_BLOCK_GAME_OVER) {
             isGameOver = true;
             PlayerController winner = PlayerController.AllPlayers.First(p => p.lives > 0);
             if (PlayerController.instance.character != null) {

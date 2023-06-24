@@ -29,11 +29,6 @@ public class Firebolt : Projectile
         bool isInvolved = photonView.IsMine || character.photonView.IsMine;
         int hurtSoundIndex = Random.Range(1, 4);
         AudioController.instance.PlaySound($"hit{hurtSoundIndex}", false, isInvolved ? 1f : 0.5f);
-        if (character.photonView.IsMine == false) {
-            return;
-        }
-        character.hp -= DAMAGE;
-        character.rb.AddForce((character.transform.position - transform.position) * IMPACT_FORCE, ForceMode2D.Impulse);
-        character.StartIFrame();
+        character.OnHit(DAMAGE, (character.transform.position - transform.position) * IMPACT_FORCE);
     }
 }

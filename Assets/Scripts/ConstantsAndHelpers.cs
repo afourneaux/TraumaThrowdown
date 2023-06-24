@@ -38,6 +38,11 @@ public class ConstantsAndHelpers
         FIREBOLT = 1
     }
 
+    // DEBUG VALUES
+    public const bool DEBUG_ALLOW_SOLO_PLAY = true;
+    public const bool DEBUG_BLOCK_GAME_OVER = true;
+    
+    // GLOBAL VALUES
     public const int MAX_PLAYERS = 8;
     public const float SPAWNER_COOLDOWN = 10f;
     public const float SPAWNER_SAFE_RADIUS = 2f;
@@ -45,6 +50,22 @@ public class ConstantsAndHelpers
     public const int START_LIVES = 3;
     public const float START_GAMECOUNTDOWN_LENGTH = 5f;
     public const float IFRAME_DURATION = 0.2f;
+
+    // CHARACTER SPECIFIC
+    // HORALDIN
+    // ISIS
+    // LOUIS
+    // OSIRIS
+    // SCREAM
+    public const float SCREAM_SELF_INVIS_FACTOR = 0.2f;
+    public const float SCREAM_SPECIAL_DURATION = 3f;
+    public const float SCREAM_SPECIAL_COOLDOWN = 10f;
+    // VAKIR
+    // WATSON
+    // WILLA
+
+
+
     public static Dictionary<ConstantsAndHelpers.CharacterEnum, string> EnumToName = new Dictionary<ConstantsAndHelpers.CharacterEnum, string>() {
         { CharacterEnum.HORALDIN, "horaldin" },
         { CharacterEnum.ISIS, "isis" },

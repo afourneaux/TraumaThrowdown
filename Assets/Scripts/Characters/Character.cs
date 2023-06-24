@@ -20,10 +20,6 @@ public abstract class Character : MonoBehaviourPunCallbacks
         get { return ConstantsAndHelpers.CharacterEnum.NONE; }
     }
 
-    public virtual bool IsSpecialActive() {
-        return false;
-    }
-
     short _hp;
     public short hp {
         get {
@@ -37,13 +33,16 @@ public abstract class Character : MonoBehaviourPunCallbacks
         }
     }
     public bool isInitialised = false;
+    public bool isSpecialActive = false;
+    public bool isUiVisible = true;
     bool isJumpReady = false;
-    bool doJump = false;
     public Rigidbody2D rb;
+    Canvas CharacterUI;
     RectTransform healthbarRT;
     public PlayerController player;
     protected SpriteRenderer sr;
     protected float attackCooldown = 0;
+    protected float specialCooldown;
     protected float iframeTimer = 0f;
     public bool isInvincible = false;
     public bool faceLeft = false;
@@ -53,6 +52,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        CharacterUI = transform.Find("CharacterUI").GetComponent<Canvas>();
         healthbarRT = transform.Find("CharacterUI/HealthBarValue").GetComponent<RectTransform>();
         transform.Find("CharacterUI/PlayerName").GetComponent<TMPro.TMP_Text>().text = photonView.Owner.NickName;
         if (photonView.IsMine) {
@@ -67,6 +67,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
 
     protected virtual void Update()
     {
+        isUiVisible = true;
         if (isInvincible) {
             sr.color = new Color(1f, .8f, .8f, .6f);
         } else {
@@ -85,10 +86,10 @@ public abstract class Character : MonoBehaviourPunCallbacks
         if (GlobalUI.isMenuOpen) {
             return;
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.W)) {
-            doJump = true;
-        }
+    void LateUpdate() {
+        CharacterUI.enabled = isUiVisible;
     }
 
     void FixedUpdate() 
@@ -127,7 +128,7 @@ public abstract class Character : MonoBehaviourPunCallbacks
                 walkSfxId = null;
             }
         }
-        if (doJump && isJumpReady) {
+        if (Input.GetKey(KeyCode.W) && isJumpReady) {
             Vector2 newSpeed = rb.velocity;
             newSpeed.y = Mathf.Clamp(newSpeed.y, 0, JUMP_MAX_UPWARD_MOMENTUM);
             newSpeed = Vector2.ClampMagnitude(newSpeed, JUMP_MAX_RECOVERY_MOMENTUM);
@@ -136,7 +137,6 @@ public abstract class Character : MonoBehaviourPunCallbacks
             isJumpReady = false;
             AudioController.instance.PlaySound("JumpRise");
         }
-        doJump = false;
     }
 
     void OnCollisionEnter2D(Collision2D collision) {
@@ -178,7 +178,28 @@ public abstract class Character : MonoBehaviourPunCallbacks
         }
     }
 
-    public void StartIFrame() {
+    public void OnHit(short damage, Vector3 force, bool iFrame = true) {
+        if (photonView.IsMine == false) {
+            return;
+        }
+        TakeDamage(damage);
+        if (force != null) {
+            Push(force);
+        }
+        if (iFrame) {
+            StartIFrame();
+        }
+    }
+
+    protected virtual void TakeDamage(short damage) {
+        hp -= damage;
+    }
+
+    protected virtual void Push(Vector3 force) {
+        rb.AddForce(force, ForceMode2D.Impulse);
+    }
+
+    void StartIFrame() {
         iframeTimer = ConstantsAndHelpers.IFRAME_DURATION;
     }
 
